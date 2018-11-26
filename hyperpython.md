@@ -45,7 +45,7 @@ def conversation_balloon(conversation):
     ]
   )
   
- @html.register(model.Conversation, role='card')
+@html.register(model.Conversation, role='card')
 def conversation_card(conversation):
   return (
     div(
@@ -58,3 +58,14 @@ def conversation_card(conversation):
   )
  
 ```
+Com algumas configurações na linguagem de template, conseguimos utilizar as `roles` da seguinte maneira:
+
+```jinja2
+{{conversation|balloon}}
+```
+
+```jinja2
+{{conversation|card}}
+```
+
+No EJ a maior parte do uso do hyperpython com roles é no app ej_conversations, onde fazemos coisas parecidas como no exemplo, a diferença é que nós estamos usando uma versão modificada onde conseguimos usar templates como componentes.
