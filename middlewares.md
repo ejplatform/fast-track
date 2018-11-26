@@ -17,3 +17,9 @@ alguma lógica pré-processamento de rotas.
 Nós temos algumas lógicas de url um pouco diferentes, por exemplo, os urls de conversa são case insensitive, o que significa que
 se acessarmos https://www.ejplatform.org/conversations/servicos-publicos-futuro/ ou https://www.ejplatform.org/conversations/Servicos-Publicos-Futuro/
 acessamos a mesma conversa.
+
+Além de urls de conversa, os quadros de conversa também possuem link case insensitive https://www.ejplatform.org/semanadeinovacao/ e https://www.ejplatform.org/Semanadeinovacao/ dão no mesmo.
+
+### Como conseguimos isso?
+
+Nos middlewares de board e conversations, sempre que uma resposta for dar 404, a gente pega a url da um split por '/' aplicamos um slugify em todos os termos gerados e montamos uma nova url. Com a função ```resolve()``` do django conseguimos como retorno qual é a view_function responsável por esta url e assim conseguimos processar corretamente a url.
