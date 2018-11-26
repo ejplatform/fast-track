@@ -16,6 +16,7 @@ Utilizando o hyperpython, podemos usar uma função comum do python:
 
 ```python
 def collapsible_list(item_list, title=None, **kwargs):
+  data = [h2(x) for x in item_list]
   return div(
     class_='CollapsibleList',
     is_component=True
@@ -24,4 +25,36 @@ def collapsible_list(item_list, title=None, **kwargs):
       html_list(data),
     ]
   ]
+```
+
+E algo muito legal também é que podemos criar `roles` das funções. Roles são papéis que determinados objetos podem assumir na view do sistema, por exemplo um objeto de conversa pode assumir um papel de exibição em balão e pode assumir um papél de exibição em card.
+
+```python
+from hyperpython import html, div, h2, Text, span
+from . import model
+
+@html.register(model.Conversation, role='balloon')
+def conversation_balloon(conversation):
+  return (
+    div(
+      class_='Conversation-balloon
+      is_component=True
+    )[
+      h2(conversation.title),
+      Text(conversation.content)
+    ]
+  )
+  
+ @html.register(model.Conversation, role='card')
+def conversation_card(conversation):
+  return (
+    div(
+      class_='Conversation-card
+      is_component=True
+    )[
+      h1(conversation.title),
+      span(conversation.description)
+    ]
+  )
+ 
 ```
