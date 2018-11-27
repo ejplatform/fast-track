@@ -1,6 +1,6 @@
 ## Hyperpython
 
-[Hyperpython](https://github.com/fabiommendes/hyperpython) é uma biblioteca que fornce maneiras de se escrever HTML utilizando python (assim como o hyperscript faz na linguagem javascript).
+[Hyperpython](https://github.com/fabiommendes/hyperpython) é uma biblioteca que fornece maneiras de se escrever HTML utilizando python (assim como o hyperscript faz na linguagem javascript).
 
 Esta biblioteca foi criada pelo professor (Fabio)[https://github.com/fabiommendes] com o intuito de reduzir a utilização de templates, tendo em vista que templates separam tecnologias e não preocupações. Assim apenas separar html ou linguagem de template do código em si não resolve alguns problemas de reuso de código e arquitetura do projeto.
 
