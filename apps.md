@@ -86,3 +86,143 @@ Esses apps possuem models, rotas, templates e outros componentes que fazem supor
 Esses apps possuem a parte principal da lógica de gamificação construída para o ej, possuindo os poderes, que podem ser atribuidos para usuários, como por exemplo o poder de promover comentários, e também as notificações que o usuário pode receber de poder recebido, ou comentário promovido.
 
 # Django boogie
+
+Nos apps do EJ existem algumas simplificações em relação aos apps django, isto ocorre pois é utilizado o framework [django-boogie](https://github.com/fabiommendes/django-boogie). Algumas facilidades são:
+
+- Marcação de models(@rest_api) para criação da api rest;
+
+```python
+# Exemplo de trecho de código em src/ej_users/models.py
+from boogie.rest import rest_api
+
+
+@rest_api(['id', 'display_name'])
+class User(AbstractUser):
+    """
+    Default user model for EJ platform.
+    """
+
+    display_name = models.CharField(
+        _('Display name'),
+        max_length=140,
+        unique=True,
+        default=random_name,
+        help_text=_(
+            'A randomly generated name used to identify each user.'
+        ),
+    )
+    email = models.EmailField(
+        _('email address'),
+        unique=True,
+        help_text=('Your e-mail address')
+    )
+
+    objects = UserManager()
+
+    @property
+    def username(self):
+        return self.email.replace('@', '__')
+
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ['name']
+
+    @property
+    def profile(self):
+        profile = rules.get_value('auth.profile')
+        return profile(self)
+
+    class Meta:
+        swappable = 'AUTH_USER_MODEL'
+```
+
+
+
+- Rotas, que são uma facilitação entre views e urls;
+
+
+```python
+# Exemplo de trecho de código em src/ej_profiles/routes.py
+from boogie.router import Router
+
+
+app_name = 'ej_profiles'
+urlpatterns = Router(
+    template=['ej_profiles/{name}.jinja2', 'generic.jinja2'],
+    login=True,
+)
+
+
+@urlpatterns.route('edit/')
+def edit(request):
+    profile = request.user.profile
+    if request.method == 'POST':
+        form = ProfileForm(request.POST, instance=profile, files=request.FILES)
+        name_form = UsernameForm(request.POST, instance=request.user)
+        if form.is_valid() and name_form.is_valid():
+            form.save()
+            name_form.save()
+            return redirect('/profile/')
+    else:
+        form = ProfileForm(instance=profile)
+        name_form = UsernameForm(instance=request.user)
+
+    return {
+        'form': form,
+        'name_form': name_form,
+        'profile': profile,
+    }
+
+```
+
+- Regras para apps, facilitando a organização de permissões em rotas e implementação de regras de negócio;
+
+
+
+```python
+# Configuração das regras é necessário no aplicativo (código adaptado de src/ej_conversations/apps.py
+from django.apps import AppConfig
+from django.utils.translation import ugettext_lazy as _
+
+
+class EjConversationsConfig(AppConfig):
+    name = 'ej_conversations'
+    verbose_name = _('Conversations')
+    rules = None
+    api = None
+    roles = None
+
+    def ready(self):
+        from . import rules, api, roles
+
+        self.rules = rules
+       
+# Código extraído do arquivo src/ej_conversations/rules.py
+
+@rules.register_perm('ej.can_vote')
+def can_vote(user, conversation):
+    """
+    User can vote in a conversation if there are unvoted comments.
+    """
+    if user.id is None:
+        return False
+    return bool(
+        conversation.approved_comments
+            .exclude(votes__author_id=user.id)
+    )
+    
+ @rules.register_perm('ej.can_promote_conversation')
+def can_promote_conversation(user):
+    """
+    Can promote a conversation of a board to the list of promoted conversations.
+    """
+    return (
+        user.is_superuser
+        or user.has_perm('ej_conversations.can_publish_promoted')
+    )
+
+
+"""
+As permissões podem ser acessadas, em um objeto de usuário de acordo com o nome que ela foi registrada, 
+Exemplo: user.has_perm('ej.can_vote')
+"""
+```
